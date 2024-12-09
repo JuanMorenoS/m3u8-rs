@@ -781,9 +781,6 @@ impl MediaPlaylist {
         if let Some(ref skip) = self.skip {
             skip.write_to(w)?;
         }
-        if let Some(ref preload_hint) = self.preload_hint {
-            preload_hint.write_to(w)?;
-        }
         if let Some(ref rendition_report) = self.rendition_report {
             rendition_report.write_to(w)?;
         }
@@ -818,6 +815,10 @@ impl MediaPlaylist {
 
         for unknown_tag in &self.unknown_tags {
             writeln!(w, "{}", unknown_tag)?;
+        }
+
+        if let Some(ref preload_hint) = self.preload_hint {
+            preload_hint.write_to(w)?;
         }
 
         Ok(())
@@ -932,9 +933,6 @@ impl MediaSegment {
             v.write_attributes_to(w)?;
             writeln!(w)?;
         }
-        for part in &self.parts {
-            part.write_to(w)?;
-        }
         for unknown_tag in &self.unknown_tags {
             writeln!(w, "{}", unknown_tag)?;
         }
@@ -954,7 +952,13 @@ impl MediaSegment {
             writeln!(w)?;
         }
 
-        writeln!(w, "{}", self.uri)
+        writeln!(w, "{}", self.uri)?;
+
+        for part in &self.parts {
+            part.write_to(w)?;
+        }
+
+        Ok(())
     }
 }
 
