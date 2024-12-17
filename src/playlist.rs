@@ -760,6 +760,7 @@ pub struct MediaPlaylist {
     pub skip: Option<Skip>,
     pub preload_hint: Option<PreloadHint>,
     pub rendition_report: Option<RenditionReport>,
+    pub parts: Vec<Part>,
 }
 
 impl MediaPlaylist {
@@ -780,9 +781,6 @@ impl MediaPlaylist {
         }
         if let Some(ref skip) = self.skip {
             skip.write_to(w)?;
-        }
-        if let Some(ref rendition_report) = self.rendition_report {
-            rendition_report.write_to(w)?;
         }
 
         writeln!(w, "#EXT-X-TARGETDURATION:{}", self.target_duration)?;
@@ -809,6 +807,9 @@ impl MediaPlaylist {
         for segment in &self.segments {
             segment.write_to(w)?;
         }
+        for part in &self.parts {
+            part.write_to(w)?;
+        }
         if self.end_list {
             writeln!(w, "#EXT-X-ENDLIST")?;
         }
@@ -819,6 +820,10 @@ impl MediaPlaylist {
 
         if let Some(ref preload_hint) = self.preload_hint {
             preload_hint.write_to(w)?;
+        }
+
+        if let Some(ref rendition_report) = self.rendition_report {
+            rendition_report.write_to(w)?;
         }
 
         Ok(())
@@ -937,6 +942,10 @@ impl MediaSegment {
             writeln!(w, "{}", unknown_tag)?;
         }
 
+        for part in &self.parts {
+            part.write_to(w)?;
+        }
+
         match WRITE_OPT_FLOAT_PRECISION.load(Ordering::Relaxed) {
             MAX => {
                 write!(w, "#EXTINF:{},", self.duration)?;
@@ -953,10 +962,6 @@ impl MediaSegment {
         }
 
         writeln!(w, "{}", self.uri)?;
-
-        for part in &self.parts {
-            part.write_to(w)?;
-        }
 
         Ok(())
     }

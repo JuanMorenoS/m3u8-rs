@@ -358,6 +358,7 @@ enum MediaPlaylistTag {
     Skip(Skip),
     PreloadHint(PreloadHint),
     RenditionReport(RenditionReport),
+    Part(Part),
 }
 
 fn media_playlist_tag(i: &[u8]) -> IResult<&[u8], MediaPlaylistTag> {
@@ -489,6 +490,9 @@ fn media_playlist_from_tags(mut tags: Vec<MediaPlaylistTag>) -> MediaPlaylist {
                 }
                 _ => (),
             },
+            MediaPlaylistTag::Part(p) => {
+                media_playlist.parts.push(p);
+            }
         }
     }
     media_playlist
