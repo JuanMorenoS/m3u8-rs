@@ -4,6 +4,7 @@
 //! Which is either a `MasterPlaylist` or a `MediaPlaylist`.
 
 use crate::QuotedOrUnquoted;
+use nom::complete::bool;
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
@@ -1276,14 +1277,49 @@ impl ServerControl {
 
     pub(crate) fn write_to<T: Write>(&self, w: &mut T) -> std::io::Result<()> {
         write!(w, "#EXT-X-SERVER-CONTROL:")?;
-        write_some_float_attribute!(w, "CAN-SKIP-UNTIL", &self.can_skip_until)?;
-        if self.can_skip_dateranges {
-            write!(w, ",CAN-SKIP-DATERANGES=YES")?;
+
+        let mut add_comma_on_next = false;
+
+        if self.can_skip_until.is_some() {
+            add_comma_on_next = true;
+
+            write_some_float_attribute!(w, "CAN-SKIP-UNTIL", &self.can_skip_until)?;
         }
-        write_some_float_attribute!(w, ",HOLD-BACK", &self.hold_back)?;
-        write_some_float_attribute!(w, ",PART-HOLD-BACK", &self.part_hold_back)?;
+
+        if self.hold_back.is_some() {
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write_some_float_attribute!(w, "HOLD-BACK", &self.hold_back)?;
+        }
+
+        if self.part_hold_back.is_some() {
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write_some_float_attribute!(w, "PART-HOLD-BACK", &self.part_hold_back)?;
+        }
+
+        if self.can_skip_dateranges {
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write!(w, "CAN-SKIP-DATERANGES=YES")?;
+        }
+
         if self.can_block_reload {
-            write!(w, ",CAN-BLOCK-RELOAD=YES")?;
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write!(w, "CAN-BLOCK-RELOAD=YES")?;
         }
         writeln!(w)
     }

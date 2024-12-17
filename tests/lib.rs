@@ -498,7 +498,7 @@ fn create_and_parse_media_playlist_llhls() {
 #EXTM3U
 #EXT-X-VERSION:6
 #EXT-X-INDEPENDENT-SEGMENTS
-#EXT-X-SERVER-CONTROL:PART-HOLD-BACK=1.533
+#EXT-X-SERVER-CONTROL:CAN-SKIP-UNTIL=10,PART-HOLD-BACK=1.533,CAN-BLOCK-RELOAD=YES
 #EXT-X-PART-INF:PART-TARGET=0.511
 #EXT-X-TARGETDURATION:1
 #EXT-X-MEDIA-SEQUENCE:1
@@ -533,7 +533,7 @@ fn create_and_parse_media_playlist_llhls() {
 #EXT-X-PART:URI=\"11_track1504_.m4s.1\",DURATION=0.510644,INDEPENDENT=YES
 #EXT-X-PRELOAD-HINT:TYPE=PART,URI=\"11_track1504_.m4s.2\"
 #EXT-X-RENDITION-REPORT:URI=\"playlist_1.m3u8\",LAST-MSN=1,LAST-PART=8
-    ";
+";
     let playlist_parsed = print_parse_and_create_playlist(&playlist_original);
-    assert_eq!(playlist_original, playlist_parsed);
+    assert_eq!(playlist_parsed, playlist_original);
 }

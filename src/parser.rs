@@ -396,6 +396,7 @@ fn media_playlist_tag(i: &[u8]) -> IResult<&[u8], MediaPlaylistTag> {
         map(skip_tag, MediaPlaylistTag::Skip),
         map(preload_hint_tag, MediaPlaylistTag::PreloadHint),
         map(rendition_report_tag, MediaPlaylistTag::RenditionReport),
+        map(part_tag, MediaPlaylistTag::Part),
         map(media_segment_tag, MediaPlaylistTag::Segment),
     ))(i)
 }
@@ -405,6 +406,7 @@ fn media_playlist_from_tags(mut tags: Vec<MediaPlaylistTag>) -> MediaPlaylist {
     let mut next_segment = MediaSegment::empty();
     let mut encryption_key = None;
     let mut map = None;
+    let mut parts: Vec<Part> = Vec::new();
 
     while let Some(tag) = tags.pop() {
         match tag {
@@ -477,13 +479,12 @@ fn media_playlist_from_tags(mut tags: Vec<MediaPlaylistTag>) -> MediaPlaylist {
                     next_segment.key = encryption_key.clone();
                     next_segment.map = map.clone();
                     next_segment.uri = u;
+                    next_segment.parts.append(&mut parts.clone());
                     media_playlist.segments.push(next_segment);
                     next_segment = MediaSegment::empty();
                     encryption_key = None;
                     map = None;
-                }
-                SegmentTag::Part(p) => {
-                    next_segment.parts.push(p);
+                    parts = Vec::new();
                 }
                 SegmentTag::Unknown(t) => {
                     next_segment.unknown_tags.push(t);
@@ -491,10 +492,13 @@ fn media_playlist_from_tags(mut tags: Vec<MediaPlaylistTag>) -> MediaPlaylist {
                 _ => (),
             },
             MediaPlaylistTag::Part(p) => {
-                media_playlist.parts.push(p);
+                parts.push(p);
             }
         }
     }
+
+    media_playlist.parts.append(&mut parts);
+
     media_playlist
 }
 
@@ -522,7 +526,6 @@ enum SegmentTag {
     Unknown(ExtTag),
     Comment(Option<String>),
     Uri(String),
-    Part(Part),
 }
 
 fn media_segment_tag(i: &[u8]) -> IResult<&[u8], SegmentTag> {
@@ -549,7 +552,6 @@ fn media_segment_tag(i: &[u8]) -> IResult<&[u8], SegmentTag> {
         map(pair(tag("#EXT-X-DATERANGE:"), daterange), |(_, range)| {
             SegmentTag::DateRange(range)
         }),
-        map(part_tag, SegmentTag::Part), // Ensure part_tag is integrated here
         map(ext_tag, SegmentTag::Unknown),
         map(comment_tag, SegmentTag::Comment),
         map(consume_line, SegmentTag::Uri),
