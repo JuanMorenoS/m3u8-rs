@@ -513,7 +513,14 @@ fn create_and_parse_media_playlist_llhls() {
                 byte_range: None,
                 discontinuity: false,
                 key: None,
-                map: None,
+                map: Some(Map {
+                    uri: "www.map-uri.com".into(),
+                    byte_range: Some(ByteRange {
+                        length: 137116,
+                        offset: Some(4559),
+                    }),
+                    other_attributes: Default::default(),
+                }),
                 program_date_time: Some(
                     chrono::FixedOffset::east(0)
                         .ymd(2024, 12, 17)
