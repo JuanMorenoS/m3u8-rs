@@ -4,6 +4,7 @@
 //! Which is either a `MasterPlaylist` or a `MediaPlaylist`.
 
 use crate::QuotedOrUnquoted;
+use nom::complete::bool;
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 use std::fmt;
@@ -760,6 +761,7 @@ pub struct MediaPlaylist {
     pub skip: Option<Skip>,
     pub preload_hint: Option<PreloadHint>,
     pub rendition_report: Option<RenditionReport>,
+    pub parts: Vec<Part>,
 }
 
 impl MediaPlaylist {
@@ -780,9 +782,6 @@ impl MediaPlaylist {
         }
         if let Some(ref skip) = self.skip {
             skip.write_to(w)?;
-        }
-        if let Some(ref rendition_report) = self.rendition_report {
-            rendition_report.write_to(w)?;
         }
 
         writeln!(w, "#EXT-X-TARGETDURATION:{}", self.target_duration)?;
@@ -809,6 +808,9 @@ impl MediaPlaylist {
         for segment in &self.segments {
             segment.write_to(w)?;
         }
+        for part in &self.parts {
+            part.write_to(w)?;
+        }
         if self.end_list {
             writeln!(w, "#EXT-X-ENDLIST")?;
         }
@@ -819,6 +821,10 @@ impl MediaPlaylist {
 
         if let Some(ref preload_hint) = self.preload_hint {
             preload_hint.write_to(w)?;
+        }
+
+        if let Some(ref rendition_report) = self.rendition_report {
+            rendition_report.write_to(w)?;
         }
 
         Ok(())
@@ -937,6 +943,10 @@ impl MediaSegment {
             writeln!(w, "{}", unknown_tag)?;
         }
 
+        for part in &self.parts {
+            part.write_to(w)?;
+        }
+
         match WRITE_OPT_FLOAT_PRECISION.load(Ordering::Relaxed) {
             MAX => {
                 write!(w, "#EXTINF:{},", self.duration)?;
@@ -953,10 +963,6 @@ impl MediaSegment {
         }
 
         writeln!(w, "{}", self.uri)?;
-
-        for part in &self.parts {
-            part.write_to(w)?;
-        }
 
         Ok(())
     }
@@ -1271,14 +1277,49 @@ impl ServerControl {
 
     pub(crate) fn write_to<T: Write>(&self, w: &mut T) -> std::io::Result<()> {
         write!(w, "#EXT-X-SERVER-CONTROL:")?;
-        write_some_float_attribute!(w, "CAN-SKIP-UNTIL", &self.can_skip_until)?;
-        if self.can_skip_dateranges {
-            write!(w, ",CAN-SKIP-DATERANGES=YES")?;
+
+        let mut add_comma_on_next = false;
+
+        if self.can_skip_until.is_some() {
+            add_comma_on_next = true;
+
+            write_some_float_attribute!(w, "CAN-SKIP-UNTIL", &self.can_skip_until)?;
         }
-        write_some_float_attribute!(w, ",HOLD-BACK", &self.hold_back)?;
-        write_some_float_attribute!(w, ",PART-HOLD-BACK", &self.part_hold_back)?;
+
+        if self.hold_back.is_some() {
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write_some_float_attribute!(w, "HOLD-BACK", &self.hold_back)?;
+        }
+
+        if self.part_hold_back.is_some() {
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write_some_float_attribute!(w, "PART-HOLD-BACK", &self.part_hold_back)?;
+        }
+
+        if self.can_skip_dateranges {
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write!(w, "CAN-SKIP-DATERANGES=YES")?;
+        }
+
         if self.can_block_reload {
-            write!(w, ",CAN-BLOCK-RELOAD=YES")?;
+            if add_comma_on_next {
+                write!(w, ",")?;
+            } else {
+                add_comma_on_next = true;
+            }
+            write!(w, "CAN-BLOCK-RELOAD=YES")?;
         }
         writeln!(w)
     }

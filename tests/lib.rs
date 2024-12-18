@@ -190,6 +190,21 @@ fn print_create_and_parse_playlist(playlist_original: &mut Playlist) -> Playlist
     playlist_parsed
 }
 
+fn print_parse_and_create_playlist(playlist_original: &str) -> String {
+    let (_, playlist_parsed) = parse_playlist(playlist_original.as_bytes()).unwrap();
+
+    let mut utf8: Vec<u8> = Vec::new();
+    playlist_parsed.write_to(&mut utf8).unwrap();
+
+    let m3u8_str: &str = std::str::from_utf8(&utf8).unwrap();
+
+    print!("\n\n---- utf8 result\n\n{}", m3u8_str);
+    print!("\n---- Original\n\n{:?}", playlist_original);
+    print!("\n\n---- Parsed\n\n{:?}\n\n", playlist_parsed);
+
+    m3u8_str.to_string()
+}
+
 #[test]
 fn create_and_parse_master_playlist_empty() {
     let mut playlist_original = Playlist::MasterPlaylist(MasterPlaylist {
@@ -422,6 +437,7 @@ fn create_and_parse_media_playlist_full() {
         skip: Default::default(),
         preload_hint: Default::default(),
         rendition_report: Default::default(),
+        parts: Default::default(),
     });
     let playlist_parsed = print_create_and_parse_playlist(&mut playlist_original);
     assert_eq!(playlist_original, playlist_parsed);
@@ -476,118 +492,222 @@ fn parsing_binary_data_should_fail_cleanly() {
 
     assert!(res.is_err());
 }
+
 #[test]
 fn create_and_parse_media_playlist_llhls() {
     let mut playlist_original = Playlist::MediaPlaylist(MediaPlaylist {
-        version: Some(9),
-        target_duration: 2,
-        media_sequence: 338559,
-        discontinuity_sequence: 1234,
+        version: Some(6),
+        target_duration: 1,
+        media_sequence: 1,
+        discontinuity_sequence: 0,
         end_list: false,
-        playlist_type: Some(MediaPlaylistType::Event),
+        playlist_type: None,
         i_frames_only: false,
-        start: Some(Start {
-            time_offset: "9999".parse().unwrap(),
-            precise: Some(true),
-            other_attributes: Default::default(),
-        }),
+        start: None,
         independent_segments: true,
-        segments: vec![MediaSegment {
-            uri: "20140311T113819-01-338559live.ts".into(),
-            duration: 2.002,
-            title: Some("338559".into()),
-            byte_range: Some(ByteRange {
-                length: 137116,
-                offset: Some(4559),
-            }),
-            discontinuity: true,
-            key: Some(Key {
-                method: KeyMethod::None,
-                uri: Some("https://secure.domain.com".into()),
-                iv: Some("0xb059217aa2649ce170b734".into()),
-                keyformat: Some("xXkeyformatXx".into()),
-                keyformatversions: Some("xXFormatVers".into()),
-            }),
-            map: Some(Map {
-                uri: "www.map-uri.com".into(),
-                byte_range: Some(ByteRange {
-                    length: 137116,
-                    offset: Some(4559),
+        segments: vec![
+            MediaSegment {
+                uri: "1_track1504_.m4s".into(),
+                duration: 0.998467,
+                title: None,
+                byte_range: None,
+                discontinuity: false,
+                key: None,
+                map: Some(Map {
+                    uri: "init_track1504_.mp4".into(),
+                    byte_range: Some(ByteRange {
+                        length: 137116,
+                        offset: Some(4559),
+                    }),
+                    other_attributes: Default::default(),
                 }),
-                other_attributes: Default::default(),
-            }),
-            program_date_time: Some(
-                chrono::FixedOffset::east(8 * 3600)
-                    .ymd(2010, 2, 19)
-                    .and_hms_milli(14, 54, 23, 31),
-            ),
-            daterange: Some(DateRange {
-                id: "9999".into(),
-                class: Some("class".into()),
-                start_date: chrono::FixedOffset::east(8 * 3600)
-                    .ymd(2010, 2, 19)
-                    .and_hms_milli(14, 54, 23, 31),
-                end_date: None,
-                duration: None,
-                planned_duration: Some("40.000".parse().unwrap()),
-                x_prefixed: Some(HashMap::from([(
-                    "X-client-attribute".into(),
-                    "whatever".into(),
-                )])),
-                end_on_next: false,
-                other_attributes: Default::default(),
-            }),
-            unknown_tags: vec![],
-            parts: vec![
-                Part {
-                    uri: "part0.ts".into(),
-                    duration: 0.5,
-                    independent: true,
-                    gap: false,
-                    byte_range: Some(ByteRange {
-                        length: 50000,
-                        offset: Some(0),
-                    }),
-                },
-                Part {
-                    uri: "part1.ts".into(),
-                    duration: 0.5,
-                    independent: false,
-                    gap: false,
-                    byte_range: Some(ByteRange {
-                        length: 50000,
-                        offset: Some(50000),
-                    }),
-                },
-            ],
-            ..Default::default()
-        }],
+                program_date_time: Some(
+                    chrono::FixedOffset::east(0)
+                        .ymd(2024, 12, 17)
+                        .and_hms_milli(16, 10, 10, 190),
+                ),
+                daterange: None,
+                unknown_tags: vec![],
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "2_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "3_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "4_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "5_track1504_.m4s".into(),
+                duration: 0.998467,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "6_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "7_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "8_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![
+                    Part {
+                        uri: "8_track1504_.m4s.1".into(),
+                        duration: 0.510644,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                    Part {
+                        uri: "8_track1504_.m4s.2".into(),
+                        duration: 0.487433,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                ],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "9_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![
+                    Part {
+                        uri: "9_track1504_.m4s.1".into(),
+                        duration: 0.510644,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                    Part {
+                        uri: "9_track1504_.m4s.2".into(),
+                        duration: 0.487433,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                ],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "10_track1504_.m4s".into(),
+                duration: 0.998467,
+                parts: vec![
+                    Part {
+                        uri: "10_track1504_.m4s.1".into(),
+                        duration: 0.510644,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                    Part {
+                        uri: "10_track1504_.m4s.2".into(),
+                        duration: 0.487433,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                ],
+                ..Default::default()
+            },
+        ],
         unknown_tags: vec![],
         server_control: Some(ServerControl {
-            can_skip_until: Some(12.0),
+            can_skip_until: Some(10.0),
             can_skip_dateranges: false,
-            hold_back: Some(3.0),
-            part_hold_back: Some(1.5),
+            hold_back: None,
+            part_hold_back: Some(1.533),
             can_block_reload: true,
         }),
-        part_inf: Some(PartInf { part_target: 0.5 }),
-        skip: Some(Skip {
-            skipped_segments: 3,
-        }),
+        part_inf: Some(PartInf { part_target: 0.511 }),
+        skip: None,
+        parts: vec![
+            Part {
+                uri: "11_track1504_.m4s.1".into(),
+                duration: 0.510644,
+                independent: true,
+                gap: false,
+                byte_range: None,
+            },
+        ],
         preload_hint: Some(PreloadHint {
             hint_type: "PART".into(),
-            uri: "next_part.ts".into(),
-            byte_range: Some(ByteRange {
-                length: 50000,
-                offset: Some(100000),
-            }),
+            uri: "11_track1504_.m4s.2".into(),
+            byte_range: None,
         }),
         rendition_report: Some(RenditionReport {
-            uri: "rendition.m3u8".into(),
-            last_msn: Some(338559),
-            last_part: Some(1),
+            uri: "playlist_1.m3u8".into(),
+            last_msn: Some(1),
+            last_part: Some(8),
         }),
     });
+
     let playlist_parsed = print_create_and_parse_playlist(&mut playlist_original);
     assert_eq!(playlist_original, playlist_parsed);
+}
+
+#[test]
+fn parse_and_create_playlist_llhls() {
+    let playlist_original = "\
+#EXTM3U
+#EXT-X-VERSION:6
+#EXT-X-INDEPENDENT-SEGMENTS
+#EXT-X-SERVER-CONTROL:CAN-SKIP-UNTIL=10,PART-HOLD-BACK=1.533,CAN-BLOCK-RELOAD=YES
+#EXT-X-PART-INF:PART-TARGET=0.511
+#EXT-X-TARGETDURATION:1
+#EXT-X-MEDIA-SEQUENCE:1
+#EXT-X-MAP:URI=\"init_track1504_.mp4\"
+#EXT-X-PROGRAM-DATE-TIME:2024-12-17T16:10:10.190Z
+#EXTINF:0.998467,
+1_track1504_.m4s
+#EXTINF:0.998456,
+2_track1504_.m4s
+#EXTINF:0.998456,
+3_track1504_.m4s
+#EXTINF:0.998456,
+4_track1504_.m4s
+#EXTINF:0.998467,
+5_track1504_.m4s
+#EXTINF:0.998456,
+6_track1504_.m4s
+#EXTINF:0.998456,
+7_track1504_.m4s
+#EXT-X-PART:URI=\"8_track1504_.m4s.1\",DURATION=0.510644,INDEPENDENT=YES
+#EXT-X-PART:URI=\"8_track1504_.m4s.2\",DURATION=0.487433,INDEPENDENT=YES
+#EXTINF:0.998456,
+8_track1504_.m4s
+#EXT-X-PART:URI=\"9_track1504_.m4s.1\",DURATION=0.510644,INDEPENDENT=YES
+#EXT-X-PART:URI=\"9_track1504_.m4s.2\",DURATION=0.487433,INDEPENDENT=YES
+#EXTINF:0.998456,
+9_track1504_.m4s
+#EXT-X-PART:URI=\"10_track1504_.m4s.1\",DURATION=0.510644,INDEPENDENT=YES
+#EXT-X-PART:URI=\"10_track1504_.m4s.2\",DURATION=0.487433,INDEPENDENT=YES
+#EXTINF:0.998467,
+10_track1504_.m4s
+#EXT-X-PART:URI=\"11_track1504_.m4s.1\",DURATION=0.510644,INDEPENDENT=YES
+#EXT-X-PRELOAD-HINT:TYPE=PART,URI=\"11_track1504_.m4s.2\"
+#EXT-X-RENDITION-REPORT:URI=\"playlist_1.m3u8\",LAST-MSN=1,LAST-PART=8
+";
+    let playlist_parsed = print_parse_and_create_playlist(&playlist_original);
+    assert_eq!(playlist_parsed, playlist_original);
 }
