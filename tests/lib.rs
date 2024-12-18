@@ -492,8 +492,175 @@ fn parsing_binary_data_should_fail_cleanly() {
 
     assert!(res.is_err());
 }
+
 #[test]
 fn create_and_parse_media_playlist_llhls() {
+    let mut playlist_original = Playlist::MediaPlaylist(MediaPlaylist {
+        version: Some(6),
+        target_duration: 1,
+        media_sequence: 1,
+        discontinuity_sequence: 0,
+        end_list: false,
+        playlist_type: None,
+        i_frames_only: false,
+        start: None,
+        independent_segments: true,
+        segments: vec![
+            MediaSegment {
+                uri: "1_track1504_.m4s".into(),
+                duration: 0.998467,
+                title: None,
+                byte_range: None,
+                discontinuity: false,
+                key: None,
+                map: None,
+                program_date_time: Some(
+                    chrono::FixedOffset::east(0)
+                        .ymd(2024, 12, 17)
+                        .and_hms_milli(16, 10, 10, 190),
+                ),
+                daterange: None,
+                unknown_tags: vec![],
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "2_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "3_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "4_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "5_track1504_.m4s".into(),
+                duration: 0.998467,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "6_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "7_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "8_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![
+                    Part {
+                        uri: "8_track1504_.m4s.1".into(),
+                        duration: 0.510644,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                    Part {
+                        uri: "8_track1504_.m4s.2".into(),
+                        duration: 0.487433,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                ],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "9_track1504_.m4s".into(),
+                duration: 0.998456,
+                parts: vec![
+                    Part {
+                        uri: "9_track1504_.m4s.1".into(),
+                        duration: 0.510644,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                    Part {
+                        uri: "9_track1504_.m4s.2".into(),
+                        duration: 0.487433,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                ],
+                ..Default::default()
+            },
+            MediaSegment {
+                uri: "10_track1504_.m4s".into(),
+                duration: 0.998467,
+                parts: vec![
+                    Part {
+                        uri: "10_track1504_.m4s.1".into(),
+                        duration: 0.510644,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                    Part {
+                        uri: "10_track1504_.m4s.2".into(),
+                        duration: 0.487433,
+                        independent: true,
+                        gap: false,
+                        byte_range: None,
+                    },
+                ],
+                ..Default::default()
+            },
+        ],
+        unknown_tags: vec![],
+        server_control: Some(ServerControl {
+            can_skip_until: Some(10.0),
+            can_skip_dateranges: false,
+            hold_back: None,
+            part_hold_back: Some(1.533),
+            can_block_reload: true,
+        }),
+        part_inf: Some(PartInf { part_target: 0.511 }),
+        skip: None,
+        parts: vec![
+            Part {
+                uri: "11_track1504_.m4s.1".into(),
+                duration: 0.510644,
+                independent: true,
+                gap: false,
+                byte_range: None,
+            },
+        ],
+        preload_hint: Some(PreloadHint {
+            hint_type: "PART".into(),
+            uri: "11_track1504_.m4s.2".into(),
+            byte_range: None,
+        }),
+        rendition_report: Some(RenditionReport {
+            uri: "playlist_1.m3u8".into(),
+            last_msn: Some(1),
+            last_part: Some(8),
+        }),
+    });
+
+    let playlist_parsed = print_create_and_parse_playlist(&mut playlist_original);
+    assert_eq!(playlist_original, playlist_parsed);
+}
+
+#[test]
+fn parse_and_create_playlist_llhls() {
     let playlist_original = "\
 #EXTM3U
 #EXT-X-VERSION:6
