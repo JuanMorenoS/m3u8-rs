@@ -514,7 +514,7 @@ fn create_and_parse_media_playlist_llhls() {
                 discontinuity: false,
                 key: None,
                 map: Some(Map {
-                    uri: "www.map-uri.com".into(),
+                    uri: "init_track1504_.mp4".into(),
                     byte_range: Some(ByteRange {
                         length: 137116,
                         offset: Some(4559),
